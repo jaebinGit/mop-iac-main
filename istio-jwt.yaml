@@ -1,0 +1,121 @@
+#---
+#apiVersion: security.istio.io/v1beta1
+#kind: RequestAuthentication
+#metadata:
+#  name: users-jwt
+#  namespace: service
+#spec:
+#  selector:
+#    matchLabels:
+#      app: user
+#  jwtRules:
+#    - issuer: "https://api.multi-learn.com"
+#      jwksUri: "http://service-auth-active.service.svc.cluster.local:8080/.well-known/jwks.json"
+#      forwardOriginalToken: true
+#---
+#apiVersion: security.istio.io/v1beta1
+#kind: RequestAuthentication
+#metadata:
+#  name: products-jwt
+#  namespace: service
+#spec:
+#  selector:
+#    matchLabels:
+#      app: products
+#  jwtRules:
+#    - issuer: "https://api.multi-learn.com"
+#      jwksUri: "http://service-auth-active.service.svc.cluster.local:8080/.well-known/jwks.json"
+#      forwardOriginalToken: true
+#---
+#apiVersion: security.istio.io/v1beta1
+#kind: RequestAuthentication
+#metadata:
+#  name: auth-jwt
+#  namespace: service
+#spec:
+#  selector:
+#    matchLabels:
+#      app: auth
+#  jwtRules:
+#    - issuer: "https://api.multi-learn.com"
+#      jwksUri: "http://service-auth-active.service.svc.cluster.local:8080/.well-known/jwks.json"
+#      forwardOriginalToken: true
+#---
+#apiVersion: security.istio.io/v1beta1
+#kind: AuthorizationPolicy
+#metadata:
+#  name: users-authz
+#  namespace: service
+#spec:
+#  selector:
+#    matchLabels:
+#      app: user
+#  action: ALLOW
+#  rules:
+#    # 1. 인증 없이 접근 가능한 경로
+#    - to:
+#        - operation:
+#            paths:
+#              - "/api/users/designer/sign-up"
+#              - "/api/users/designer/login"
+#              - "/api/users/model/sign-up"
+#              - "/api/users/model/login"
+#    # 2. 서비스 간 통신 허용
+#    - from:
+#        - source:
+#            principals: [ "cluster.local/ns/service/sa/*" ]
+##    # 3. 인증된 사용자에게 /users/* 경로 허용
+##    - from:
+##        - source:
+##            requestPrincipals: [ "*" ]
+##      to:
+##        - operation:
+##            paths: [ "/api/users/*", "/api/users/*/*", "/api/users/*/*/*", "/api/users/*/*/*/*"]
+## products-authz.yaml
+#---
+#apiVersion: security.istio.io/v1beta1
+#kind: AuthorizationPolicy
+#metadata:
+#  name: products-authz
+#  namespace: service
+#spec:
+#  selector:
+#    matchLabels:
+#      app: products
+#  action: ALLOW
+#  rules:
+#    # 1. 서비스 간 통신 허용
+#    - from:
+#        - source:
+#            principals: [ "cluster.local/ns/service/sa/*" ]
+##    # 2. 인증된 사용자에게 /products/* 경로 허용
+##    - from:
+##        - source:
+##            requestPrincipals: ["*"]
+##      to:
+##        - operation:
+##            paths: ["/api/products/", "/api/products/*", "/api/products/*/*", "/api/products/*/*/*", "/api/products/*/*/*/*"]
+## auth-authz.yaml
+#---
+#apiVersion: security.istio.io/v1beta1
+#kind: AuthorizationPolicy
+#metadata:
+#  name: auth-authz
+#  namespace: service
+#spec:
+#  selector:
+#    matchLabels:
+#      app: auth
+#  action: ALLOW
+#  rules:
+#    # 1. 모든 사용자에게 /auth/* 경로 허용
+#    - to:
+#        - operation:
+#            paths:
+#              - "/auth/*"
+#              - "/auth/token/refresh"
+#              - "/.well-known/jwks.json"
+#    # 2. 서비스 간 통신 허용
+#    - from:
+#        - source:
+#            principals: ["cluster.local/ns/service/sa/*"]

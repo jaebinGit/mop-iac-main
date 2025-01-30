@@ -1,0 +1,280 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: service-user
+  namespace: service
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: user
+  strategy:
+    blueGreen:
+      activeService: service-user-active
+      previewService: service-user-preview
+      autoPromotionEnabled: true
+      scaleDownDelaySeconds: 30
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      serviceAccountName: service-user-active-sa  # ServiceAccount 적용
+      containers:
+        - name: user
+          image: {input your image url}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_PASSWORD
+          resources:
+            limits:
+              cpu: "300m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+  # strategy:
+  #   canary:
+  #     maxSurge: '25%' # canary 배포로 생성할 pod의 비율
+  #     maxUnavailable: 0 # 업데이트 될 때 사용할 수 없는 pod의 최대 수
+  #     steps:
+  #       - setWeight: 25 # 카나리로 배포된 서버로 전송해야될 트래픽 비율
+  #       - pause: { duration: 1h } # AutoPromotion Time
+---
+# service-products Rollout
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: service-products
+  namespace: service
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: products
+  strategy:
+    blueGreen:
+      activeService: service-products-active
+      previewService: service-products-preview
+      autoPromotionEnabled: true
+      scaleDownDelaySeconds: 30
+  template:
+    metadata:
+      labels:
+        app: products
+    spec:
+      serviceAccountName: service-products-active-sa  # ServiceAccount 적용
+      containers:
+        - name: products
+          image: {input your image url}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_PASSWORD
+          resources:
+            limits:
+              cpu: "300m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+  # strategy:
+  #   canary:
+  #     maxSurge: '25%' # canary 배포로 생성할 pod의 비율
+  #     maxUnavailable: 0 # 업데이트 될 때 사용할 수 없는 pod의 최대 수
+  #     steps:
+  #       - setWeight: 25 # 카나리로 배포된 서버로 전송해야될 트래픽 비율
+  #       - pause: { duration: 1h } # AutoPromotion Time
+
+
+#---
+#---
+#apiVersion: argoproj.io/v1alpha1
+#kind: Rollout
+#metadata:
+#  name: service-user
+#  namespace: service
+#spec:
+#  replicas: 1
+#  revisionHistoryLimit: 2
+#  selector:
+#    matchLabels:
+#      type: service
+#      for: user
+#  template:
+#    metadata:
+#      labels:
+#        type: service
+#        for: user
+#    spec:
+#      containers:
+#        - name: user
+#          image: 891377255417.dkr.ecr.ap-northeast-2.amazonaws.com/mozip-user:6a80a74265f0b5382b49faf09df19cd5e76b7ba3
+#          ports:
+#            - containerPort: 8080
+#          resources:
+#            requests:
+#              cpu: 100m
+#              memory: 512Mi
+#            limits:
+#              cpu: 300m
+#              memory: 512Mi
+#          env:
+#            - name: DB_URL
+#              valueFrom:
+#                secretKeyRef:
+#                  name: secret
+#                  key: DB_URL
+#            - name: DB_USERNAME
+#              valueFrom:
+#                secretKeyRef:
+#                  name: secret
+#                  key: DB_USERNAME
+#            - name: DB_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: secret
+#                  key: DB_PASSWORD
+#  strategy:
+#    blueGreen:
+#      activeService: service-user-active
+#      previewService: service-user-preview
+#      autoPromotionEnabled: true
+#      scaleDownDelaySeconds: 30
+##---
+##apiVersion: argoproj.io/v1alpha1
+##kind: Rollout
+##metadata:
+##  name: service-products
+##  namespace: service
+##spec:
+##  replicas: 1
+##  revisionHistoryLimit: 2
+##  selector:
+##    matchLabels:
+##      type: service
+##      for: products
+##  template:
+##    metadata:
+##      labels:
+##        type: service
+##        for: products
+##    spec:
+##      containers:
+##        - name: products
+##          image: 891377255417.dkr.ecr.ap-northeast-2.amazonaws.com/mozip-product:8299c95fed343c7149321770f475e72141ac00e7
+##          ports:
+##            - containerPort: 8080
+##          resources:
+##            requests:
+##              cpu: 100m
+##              memory: 512Mi
+##            limits:
+##              cpu: 300m
+##              memory: 512Mi
+##          env:
+##            - name: DB_URL
+##              valueFrom:
+##                secretKeyRef:
+##                  name: secret
+##                  key: DB_URL
+##            - name: DB_USERNAME
+##              valueFrom:
+##                secretKeyRef:
+##                  name: secret
+##                  key: DB_USERNAME
+##            - name: DB_PASSWORD
+##              valueFrom:
+##                secretKeyRef:
+##                  name: secret
+##                  key: DB_PASSWORD
+##  strategy:
+##    blueGreen:
+##      activeService: service-products-active
+##      previewService: service-products-preview
+##      autoPromotionEnabled: true
+##      scaleDownDelaySeconds: 30
+---
+# service-auth Rollout
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: service-auth
+  namespace: service
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: auth
+  strategy:
+    blueGreen:
+      activeService: service-auth-active
+      previewService: service-auth-preview
+      autoPromotionEnabled: true
+      scaleDownDelaySeconds: 30
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      serviceAccountName: service-auth-active-sa  # ServiceAccount 적용
+      containers:
+        - name: auth
+          image: {input your image url}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_PASSWORD
+          resources:
+            limits:
+              cpu: "300m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
