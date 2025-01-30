@@ -1,4 +1,4 @@
 # 아키텍처
-![img.png](image/img.pngmg.png)
+![img.png](image/img.png)
 # istio service mesh
-![img.png](image/img2.pngg2.png)
+![img.png](image/img2.png)
